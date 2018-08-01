@@ -1,0 +1,71 @@
+<?php
+define('EATLAS_FIELD_EXTRA_ATTRIBUTES_FIELD_NAME', 'field_extra_attributes_location');
+
+/**
+ * Implement: hook_form_FORM_ID_alter
+ * For form ID: field_ui_field_edit_form (the form used to edit fields)
+ *     => hook_form_field_ui_field_edit_form_alter
+ * See:
+ *     https://api.drupal.org/api/drupal/modules!field_ui!field_ui.api.php/function/hook_field_settings_form/7
+ */
+function eatlas_field_extra_attributes_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
+	// Define the form field
+	// NOTE: '#weight' can be used to control where the field appear in the form.
+	$locationField = array (
+		'#type' => 'textfield',
+		'#title' => 'Location',
+		'#default_value' => '',
+		'#description' => 'Define where this field has to be displayed.<br/>' .
+				'Valid values: sidebar_first<br/>' .
+				'<em>NOTE: This field was added by the "eatlas_field_extra_attributes" module.</em>'
+	);
+
+	// Edition mode: Retrieve the saved value (for some reason, this is not done automatically)
+	$mode = !isset($form_state['input']) || empty($form_state['input']) ? 'EDIT' : 'SAVE';
+	if ($mode === 'EDIT' &&
+			isset($form['#field']['settings'][EATLAS_FIELD_EXTRA_ATTRIBUTES_FIELD_NAME]) &&
+			$form['#field']['settings'][EATLAS_FIELD_EXTRA_ATTRIBUTES_FIELD_NAME]) {
+		$locationField['#default_value'] = $form['#field']['settings'][EATLAS_FIELD_EXTRA_ATTRIBUTES_FIELD_NAME];
+	}
+
+	// Add the form field to the form
+	// NOTE: Drupal manage the save
+	$form['field']['settings'][EATLAS_FIELD_EXTRA_ATTRIBUTES_FIELD_NAME] = $locationField;
+}
+
+/**
+ * API Function
+ * Return an array containing all field names (String)
+ * that should be displayed in '$location' region.
+ */
+function eatlas_field_extra_attributes_get_content_field_names($content, $location) {
+	$contentFieldNames = array();
+	if (!$content || !$location) {
+		return $contentFieldNames;
+	}
+
+	$location = _eatlas_field_extra_attributes_clean_str($location);
+
+	// Sort the content elements (it's done by "element_children"
+	//     method when TRUE is sent as 2nd parameter)
+	$sortedFieldNames = element_children($content, TRUE);
+
+	foreach($sortedFieldNames as $field_name) {
+		$field_info = field_info_field($field_name);
+		if (isset($field_info['settings'][EATLAS_FIELD_EXTRA_ATTRIBUTES_FIELD_NAME])) {
+			$extraAttribute = _eatlas_field_extra_attributes_clean_str($field_info['settings'][EATLAS_FIELD_EXTRA_ATTRIBUTES_FIELD_NAME]);
+			if (strcasecmp($extraAttribute, $location) === 0) {
+				$contentFieldNames[] = $field_name;
+			}
+		}
+	}
+
+	return $contentFieldNames;
+}
+
+function _eatlas_field_extra_attributes_clean_str($str) {
+	// Remove none alphanumeric characters to be more robust
+	return preg_replace("/[^A-Za-z0-9]/", '', $str);
+}
+
+?>

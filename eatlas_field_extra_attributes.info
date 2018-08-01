@@ -1,0 +1,14 @@
+; $Id$
+name = eAtlas Field extra attributes
+description = [eatlas_field_extra_attributes] This module add extra attributes to every fields. It's used to add the 'location' attribute, which is used to tell in which region the field will be displayed. That's how some field get rendered into the 'sidebar_first' column.
+core = 7.x
+
+files[] = eatlas_field_extra_attributes.module
+
+package = eAtlas
+
+; Attributes used by the update module.
+; There fields needs to be removed if the module is migrated to Drupal.org
+project status url = "http://drupal.eatlas.org.au/modules/eatlas"
+version = "7.x-1.0"
+project = "eatlas_field_extra_attributes"
